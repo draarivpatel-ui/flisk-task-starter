@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, make_response, g
+from flask import Flask, abort, render_template, request, make_response, g
 from redis import Redis
 import os
 import socket
@@ -30,8 +30,10 @@ def hello():
     vote = None
 
     if request.method == 'POST':
+        vote = request.form.get('vote')
+        if vote not in ('a', 'b'):
+            abort(400, description="Vote must be 'a' or 'b'.")
         redis = get_redis()
-        vote = request.form['vote']
         app.logger.info('Received vote for %s', vote)
         data = json.dumps({'voter_id': voter_id, 'vote': vote})
         redis.rpush('votes', data)
